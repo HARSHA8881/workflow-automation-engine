@@ -12,19 +12,175 @@ const Icons = {
   Briefcase: () => <span>💼</span>,
   Plus: () => <span>➕</span>,
   Play: () => <span>▶️</span>,
+  Logout: () => <span>🚪</span>,
+  Lock: () => <span>🔒</span>,
 };
 
+// ─── Auth Page (Login/Signup) ───────────────────────────────────────────────
+
+function AuthPage({ onAuth }) {
+  const [mode, setMode] = useState('login'); // 'login' or 'signup'
+  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    try {
+      let result;
+      if (mode === 'signup') {
+        result = await api.signup(form);
+      } else {
+        result = await api.login({ email: form.email, password: form.password });
+      }
+      // Save token and user
+      localStorage.setItem('auth_token', result.token);
+      localStorage.setItem('auth_user', JSON.stringify(result.user));
+      onAuth(result.user);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="auth-header">
+          <div className="auth-logo">
+            <span className="auth-logo-icon">⚡</span>
+            <h1>FlowForge</h1>
+          </div>
+          <p className="auth-subtitle">Event-Driven Workflow Automation</p>
+        </div>
+
+        <div className="auth-card">
+          <div className="auth-tabs">
+            <button
+              className={`auth-tab ${mode === 'login' ? 'active' : ''}`}
+              onClick={() => { setMode('login'); setError(''); }}
+            >
+              Sign In
+            </button>
+            <button
+              className={`auth-tab ${mode === 'signup' ? 'active' : ''}`}
+              onClick={() => { setMode('signup'); setError(''); }}
+            >
+              Create Account
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="auth-form">
+            {mode === 'signup' && (
+              <div className="form-group">
+                <label className="form-label">Full Name</label>
+                <input
+                  name="name"
+                  type="text"
+                  className="form-control"
+                  placeholder="John Doe"
+                  value={form.name}
+                  onChange={handleChange}
+                  required
+                  autoComplete="name"
+                />
+              </div>
+            )}
+
+            <div className="form-group">
+              <label className="form-label">Email Address</label>
+              <input
+                name="email"
+                type="email"
+                className="form-control"
+                placeholder="you@company.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Password</label>
+              <input
+                name="password"
+                type="password"
+                className="form-control"
+                placeholder={mode === 'signup' ? 'Min 6 characters' : '••••••••'}
+                value={form.password}
+                onChange={handleChange}
+                required
+                minLength={mode === 'signup' ? 6 : undefined}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              />
+            </div>
+
+            {error && <div className="auth-error">{error}</div>}
+
+            <button type="submit" className="btn btn-primary auth-submit" disabled={loading}>
+              {loading
+                ? (mode === 'login' ? 'Signing in...' : 'Creating account...')
+                : (mode === 'login' ? 'Sign In' : 'Create Account')}
+            </button>
+          </form>
+
+          <div className="auth-footer">
+            {mode === 'login' ? (
+              <p>Don't have an account? <button className="auth-link" onClick={() => setMode('signup')}>Create one</button></p>
+            ) : (
+              <p>Already have an account? <button className="auth-link" onClick={() => setMode('login')}>Sign in</button></p>
+            )}
+          </div>
+        </div>
+
+        <p className="auth-branding">Smart HR Automation System</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main App ───────────────────────────────────────────────────────────────
+
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [stats, setStats] = useState({ total: 0, successful: 0, failed: 0 });
   const [employees, setEmployees] = useState([]);
 
+  // Check for existing session on mount
   useEffect(() => {
+    const savedUser = localStorage.getItem('auth_user');
+    const token = localStorage.getItem('auth_token');
+    if (savedUser && token) {
+      setUser(JSON.parse(savedUser));
+    }
+    setAuthChecked(true);
+
+    // Listen for auth expiry events from api.js
+    const handleExpiry = () => {
+      setUser(null);
+    };
+    window.addEventListener('auth-expired', handleExpiry);
+    return () => window.removeEventListener('auth-expired', handleExpiry);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
     fetchStats();
     if (activeTab === 'dashboard') {
       api.getEmployees().then(setEmployees).catch(console.error);
     }
-  }, [activeTab]);
+  }, [activeTab, user]);
 
   const fetchStats = async () => {
     try {
@@ -35,11 +191,35 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
+    setUser(null);
+  };
+
+  // Wait for auth check before rendering
+  if (!authChecked) return null;
+
+  // Not logged in — show auth page
+  if (!user) {
+    return <AuthPage onAuth={setUser} />;
+  }
+
+  // Logged in — show dashboard
   return (
     <div className="app-container">
       <header className="app-header">
         <h1>Smart HR Automation System</h1>
-        <div className="badge badge-info">Configurable Workflow Engine</div>
+        <div className="header-right">
+          <div className="user-info">
+            <span className="user-avatar">{user.name.charAt(0).toUpperCase()}</span>
+            <span className="user-name">{user.name}</span>
+            <span className="badge badge-info">{user.role}</span>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
+            <Icons.Logout /> Logout
+          </button>
+        </div>
       </header>
 
       <div className="app-content">
@@ -571,4 +751,3 @@ function SalaryTab({ employees }) {
     </div>
   );
 }
-

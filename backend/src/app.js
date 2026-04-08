@@ -1,37 +1,47 @@
-const express      = require('express');
-const cors         = require('cors');
-const errorHandler = require('./middleware/errorHandler');
+const express        = require('express');
+const cors           = require('cors');
+const errorHandler   = require('./middleware/errorHandler');
+const { authenticate } = require('./middleware/auth');
 
 const app = express();
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:3000'], credentials: true }));
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (curl, Postman) or any localhost port
+    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
-// ─── Health ────────────────────────────────────────────────────────────────
+// ─── Health (public) ───────────────────────────────────────────────────────
 app.get('/health', (_req, res) =>
   res.json({ status: 'ok', service: 'Smart HR Automation System', ts: new Date().toISOString() })
 );
 
-// ─── Workflow Engine (existing) ────────────────────────────────────────────
-app.use('/api/workflows',   require('./routes/workflow.routes'));
-app.use('/api/runs',        require('./routes/run.routes'));
+// ─── Auth (public) ─────────────────────────────────────────────────────────
+app.use('/api/auth',        require('./routes/auth.routes'));
 
-// ─── HR System ─────────────────────────────────────────────────────────────
-app.use('/api/employees',   require('./routes/employee.routes'));
-app.use('/api/attendance',  require('./routes/attendance.routes'));
-app.use('/api/leaves',      require('./routes/leave.routes'));
-app.use('/api/rules',       require('./routes/rule.routes'));
-app.use('/api/events',      require('./routes/event.routes'));
-app.use('/api/action-logs', require('./routes/actionLog.routes'));
-app.use('/api/salary',      require('./routes/salary.routes'));
-
-// ─── Dashboard ─────────────────────────────────────────────────────────────
-app.use('/api/dashboard',   require('./routes/dashboard.routes'));
+// ─── Protected Routes (require JWT) ────────────────────────────────────────
+app.use('/api/workflows',   authenticate, require('./routes/workflow.routes'));
+app.use('/api/runs',        authenticate, require('./routes/run.routes'));
+app.use('/api/employees',   authenticate, require('./routes/employee.routes'));
+app.use('/api/attendance',  authenticate, require('./routes/attendance.routes'));
+app.use('/api/leaves',      authenticate, require('./routes/leave.routes'));
+app.use('/api/rules',       authenticate, require('./routes/rule.routes'));
+app.use('/api/events',      authenticate, require('./routes/event.routes'));
+app.use('/api/action-logs', authenticate, require('./routes/actionLog.routes'));
+app.use('/api/salary',      authenticate, require('./routes/salary.routes'));
+app.use('/api/dashboard',   authenticate, require('./routes/dashboard.routes'));
 
 // ─── 404 ───────────────────────────────────────────────────────────────────
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 
-// ─── Global Error Handler (extracted to middleware) ────────────────────────
+// ─── Global Error Handler ──────────────────────────────────────────────────
 app.use(errorHandler);
 
 module.exports = app;
