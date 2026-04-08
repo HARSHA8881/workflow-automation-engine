@@ -496,7 +496,7 @@ function AttendanceTab({ employees }) {
   };
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '1.5rem' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '1.5rem' }}>
       <div className="panel" style={{ height: 'max-content' }}>
         <div className="panel-header"><h3 className="panel-title">Emit Event</h3></div>
         <div className="panel-body">

@@ -6,14 +6,7 @@ const { authenticate } = require('./middleware/auth');
 const app = express();
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (curl, Postman) or any localhost port
-    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true, // Dynamically allows the requesting origin (like Vercel) while supporting credentials
   credentials: true,
 }));
 app.use(express.json());
