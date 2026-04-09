@@ -294,4 +294,4 @@ For detailed explanations, see [docs/system-design.md](docs/system-design.md).
 
 ##  License
 
-- This project is licensed under the ISC License .
+This project is licensed under the ISC License .
