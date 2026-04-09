@@ -8,7 +8,9 @@ An event-driven workflow automation system that automatically executes actions b
 
 - [Problem Statement](#problem-statement)
 - [Solution](#solution)
+- [Workflow](#workflow)
 - [Features](#features)
+- [Key Architecture Highlights](#key-architecture-highlights)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -43,6 +45,17 @@ EVENT → CONDITION → ACTION
 
 ---
 
+## Workflow
+1. Event is generated (e.g., attendance marked)
+2. Event is published to Event Bus
+3. Rule Engine receives the event
+4. Relevant rules are fetched
+5. Conditions are evaluated
+6. Actions are executed
+7. Results are logged
+
+---
+
 ## Features
 
 - **Configurable Rule Engine** — Create rules with Event → Condition → Action logic
@@ -56,6 +69,16 @@ EVENT → CONDITION → ACTION
 - **Salary Simulation** — View salary with rule-based deductions and bonuses
 - **Dashboard Statistics** — Aggregated system overview
 - **Workflow Execution** — Multi-step workflow engine with step-by-step execution
+
+---
+
+## Key Architecture Highlights
+
+- Loose coupling via Event-Driven Architecture
+- High cohesion with modular components
+- Extensible rule system (no code changes required)
+- Separation of concerns across layers
+- Scalable design with support for async processing
 
 ---
 
