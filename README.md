@@ -6,6 +6,8 @@ An event-driven workflow automation system that automatically executes actions b
 
 ## Table of Contents
 
+- [Problem Statement](#problem-statement)
+- [Solution](#solution)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
@@ -15,6 +17,29 @@ An event-driven workflow automation system that automatically executes actions b
 - [Design Patterns](#design-patterns)
 - [SOLID Principles](#solid-principles)
 - [Team Contributions](#team-contributions)
+
+---
+
+## Problem Statement
+
+Organizations often need automation for recurring operational tasks like attendance tracking, payroll updates, notifications, and compliance checks. Traditionally, these tasks are handled by separate software modules hardcoded for specific use cases:
+
+- A factory may have one system for attendance and another for payroll.
+- Offices may use different tools for task management and leave tracking.
+- Schools may have separate systems for attendance and grading.
+
+---
+
+## Solution
+
+We propose a Configurable Workflow Automation Engine (Universal Automation Platform) that allows organizations to define rules and automate actions based on events.
+
+Key Idea:
+EVENT → CONDITION → ACTION
+
+- Event: Something that happens in the system (attendance marked, leave approved, task completed).
+- Condition: A rule that decides whether the action should be executed (attendance < 75%, task overdue).
+- Action: Automatic response triggered if the condition is true (send notification, update payroll, generate coupon).
 
 ---
 
