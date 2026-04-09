@@ -1,10 +1,10 @@
-# 🚀 Event-Driven Intelligent Workflow Automation System
+# Event-Driven Intelligent Workflow Automation System
 
 An event-driven workflow automation system that automatically executes actions based on configurable rules following the **Event → Condition → Action** pattern. Built for a Smart HR Automation use case, enabling administrators to create and manage automation workflows without modifying core code.
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [Features](#features)
 - [Architecture](#architecture)
@@ -18,7 +18,7 @@ An event-driven workflow automation system that automatically executes actions b
 
 ---
 
-## ✨ Features
+## Features
 
 - **Configurable Rule Engine** — Create rules with Event → Condition → Action logic
 - **Event-Driven Architecture** — Events trigger automatic rule evaluation
@@ -34,7 +34,7 @@ An event-driven workflow automation system that automatically executes actions b
 
 ---
 
-## 🏗 Architecture
+##  Architecture
 
 The system follows an **Event-Driven Modular Architecture**:
 
@@ -67,7 +67,7 @@ For detailed architecture, see [docs/architecture.md](docs/architecture.md).
 
 ---
 
-## 🛠 Tech Stack
+##  Tech Stack
 
 | Layer        | Technology                    |
 |-------------|-------------------------------|
@@ -80,7 +80,7 @@ For detailed architecture, see [docs/architecture.md](docs/architecture.md).
 
 ---
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 workflow-automation-engine/
@@ -116,7 +116,7 @@ workflow-automation-engine/
 
 ---
 
-## ⚡ Setup & Installation
+##  Setup & Installation
 
 ### Prerequisites
 
@@ -171,7 +171,7 @@ npm run dev    # → http://localhost:5173
 
 ---
 
-## 📡 API Documentation
+##  API Documentation
 
 See [docs/api-documentation.md](docs/api-documentation.md) for the full API reference.
 
@@ -205,7 +205,7 @@ See [docs/api-documentation.md](docs/api-documentation.md) for the full API refe
 
 ---
 
-## 🎨 Design Patterns
+##  Design Patterns
 
 | Pattern                    | Location                          | Purpose                                    |
 |---------------------------|-----------------------------------|--------------------------------------------|
@@ -221,7 +221,7 @@ For detailed explanations, see [docs/system-design.md](docs/system-design.md).
 
 ---
 
-## 🏛 SOLID Principles
+##  SOLID Principles
 
 | Principle                     | Implementation                                                                 |
 |------------------------------|--------------------------------------------------------------------------------|
@@ -233,7 +233,7 @@ For detailed explanations, see [docs/system-design.md](docs/system-design.md).
 
 ---
 
-## 👥 Team Contributions
+##  Team Contributions
 
 | Role                    | Responsibilities                                                  |
 |------------------------|-------------------------------------------------------------------|
@@ -243,6 +243,6 @@ For detailed explanations, see [docs/system-design.md](docs/system-design.md).
 
 ---
 
-## 📄 License
+##  License
 
 ISC
