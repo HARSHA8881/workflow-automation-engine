@@ -186,4 +186,4 @@ All 7 action classes extend `BaseAction` and implement `execute()`. The RuleEngi
 
 - RuleEngine depends on `RuleEvaluator` (abstraction) not specific operator implementations
 - RuleEngine depends on `RuleRepository` (abstraction) not Prisma directly
-- RuleEngine depends on `ActionFactory` which returns `BaseAction` (abstraction) not concrete actions
+- RuleEngine depends on `ActionFactory` which returns `BaseAction` (abstraction) not concrete action
