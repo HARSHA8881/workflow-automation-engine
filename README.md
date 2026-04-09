@@ -19,6 +19,7 @@ An event-driven workflow automation system that automatically executes actions b
 - [Design Patterns](#design-patterns)
 - [SOLID Principles](#solid-principles)
 - [Team Contributions](#team-contributions)
+- [License](#license)
 
 ---
 
