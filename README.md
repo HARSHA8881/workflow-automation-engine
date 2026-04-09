@@ -293,4 +293,4 @@ For detailed explanations, see [docs/system-design.md](docs/system-design.md).
 
 ##  License
 
-ISC
+- This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
