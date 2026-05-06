@@ -77,4 +77,5 @@ export const api = {
   // ─── Salary ───────────────────────────────────────────────
   getAllSalaries:  (p = {}) => req('GET', `/salary?${new URLSearchParams(p)}`),
   getSalary:       (id, p = {}) => req('GET', `/salary/${id}?${new URLSearchParams(p)}`),
+  generateSalary:  (d)      => req('POST', '/salary/generate', d),
 };

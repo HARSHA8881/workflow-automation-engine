@@ -121,7 +121,7 @@ export default function App() {
   useEffect(() => {
     if (!user) return;
     api.getLogStats().then(setStats).catch(console.error);
-    if (activeTab === 'dashboard') {
+    if (['dashboard', 'salary', 'attendance'].includes(activeTab)) {
       api.getEmployees().then(setEmployees).catch(console.error);
     }
   }, [activeTab, user]);
@@ -183,7 +183,7 @@ export default function App() {
           {activeTab === 'leaves' && <LeavesTab />}
           {activeTab === 'rules' && <RulesTab />}
           {activeTab === 'events' && <EventsTab />}
-          {activeTab === 'salary' && <SalaryTab />}
+          {activeTab === 'salary' && <SalaryTab employees={employees} />}
         </main>
       </div>
     </div>
@@ -532,25 +532,140 @@ function LeavesTab() {
   return <div className="panel"><div className="panel-header"><h2 className="panel-title">Leave Approvals</h2></div><div className="panel-body"><p style={{color:'var(--text-secondary)'}}>API active. Send requests via Postman to trigger automation rules.</p></div></div>;
 }
 
-function SalaryTab() {
+function SalaryTab({ employees }) {
   const [salaries, setSalaries] = useState([]);
-  useEffect(() => { api.getAllSalaries().then(setSalaries).catch(console.error); }, []);
+  const [range, setRange] = useState({
+    start: new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0],
+    end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0]
+  });
+
+  const load = () => {
+    api.getAllSalaries({ startDate: range.start, endDate: range.end })
+      .then(setSalaries)
+      .catch(console.error);
+  };
+
+  useEffect(() => { load(); }, [range]);
+
+  const handleGenerate = async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    try {
+      await api.generateSalary({
+        employeeId: data.employeeId,
+        startDate: range.start,
+        endDate: range.end
+      });
+      alert('Salary Record Generated & Saved');
+      load();
+    } catch (err) { alert(err.message); }
+  };
+
   return (
-    <div className="panel">
-      <div className="panel-header"><h2 className="panel-title">Payroll State</h2></div>
-      <div className="table-wrapper">
-        <table>
-          <thead><tr><th>Employee</th><th>Base Salary</th><th>Deductions</th><th>Bonuses</th><th>Net Payout</th></tr></thead>
-          <tbody>{salaries.map(s => (
-            <tr key={s.id}>
-              <td><div style={{fontWeight:500}}>{s.name}</div><div className="td-mono">{s.department}</div></td>
-              <td className="td-mono">${s.baseSalary}</td>
-              <td className="td-mono" style={{color:'var(--accent-red)'}}>-${s.totalDeductions}</td>
-              <td className="td-mono" style={{color:'var(--accent-green)'}}>+${s.totalBonuses}</td>
-              <td className="td-mono" style={{fontWeight:600}}>${s.netSalary}</td>
-            </tr>
-          ))}</tbody>
-        </table>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <div className="metrics-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+        <div className="panel" style={{ padding: '1rem' }}>
+          <h4 style={{ marginBottom: '1rem', color: 'var(--text-secondary)' }}>Select Pay Period</h4>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <label className="form-label">Input Date (Start)</label>
+              <input type="date" className="form-control" value={range.start} onChange={e => setRange({ ...range, start: e.target.value })} />
+            </div>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <label className="form-label">Output Date (End)</label>
+              <input type="date" className="form-control" value={range.end} onChange={e => setRange({ ...range, end: e.target.value })} />
+            </div>
+          </div>
+        </div>
+
+        <div className="panel" style={{ padding: '1rem' }}>
+          <h4 style={{ marginBottom: '1rem', color: 'var(--accent-amber)' }}>Execute Payout Calculation</h4>
+          <form onSubmit={handleGenerate} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <label className="form-label">Target Employee</label>
+              <select name="employeeId" required className="form-control">
+                <option value="">Select Employee</option>
+                {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </select>
+            </div>
+            <button type="submit" className="btn btn-primary">Generate & Post</button>
+          </form>
+        </div>
+      </div>
+
+      <div className="panel">
+        <div className="panel-header">
+          <h2 className="panel-title">Payroll Ledger (Based on Active Rules)</h2>
+          <div className="badge badge-active"><span className="badge-dot"></span>{range.start} to {range.end}</div>
+        </div>
+        <div className="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Input Date</th>
+                <th>Output Date</th>
+                <th>Base Salary</th>
+                <th>Deductions</th>
+                <th>Bonuses</th>
+                <th>Net Payout</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(salaries || []).map((s, idx) => (
+                <tr key={(s.id || idx) + idx}>
+                  <td>
+                    <div style={{ fontWeight: 500 }}>{s.name}</div>
+                    <div className="td-mono" style={{ fontSize: '11px' }}>{s.department}</div>
+                  </td>
+                  <td className="td-mono">{s.inputDate ? new Date(s.inputDate).toLocaleDateString() : '-'}</td>
+                  <td className="td-mono">{s.outputDate ? new Date(s.outputDate).toLocaleDateString() : '-'}</td>
+                  <td className="td-mono">${s.baseSalary || 0}</td>
+                  <td className="td-mono" style={{ color: 'var(--accent-red)' }}>
+                    {s.totalDeductions > 0 ? `-$${s.totalDeductions}` : '$0'}
+                  </td>
+                  <td className="td-mono" style={{ color: 'var(--accent-green)' }}>
+                    {s.totalBonuses > 0 ? `+$${s.totalBonuses}` : '$0'}
+                  </td>
+                  <td className="td-mono" style={{ fontWeight: 600 }}>${s.netSalary}</td>
+                  <td>
+                    <span className={`badge ${s.status === 'PAID' ? 'badge-success' : 'badge-warning'}`}>
+                      <span className="badge-dot"></span>{s.status || 'PROVISIONAL'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {salaries.length === 0 && (
+                <tr>
+                  <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-tertiary)' }}>
+                    No records found for this period.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div className="panel" style={{ border: '1px dashed var(--border-dim)', background: 'transparent' }}>
+        <div className="panel-header"><h3 className="panel-title" style={{ fontSize: '14px' }}>Workflow Explanation (Rule-Based Calculation)</h3></div>
+        <div className="panel-body" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+          <div>
+            <h5 style={{ color: 'var(--accent-primary)', marginBottom: '0.5rem' }}>Example 1: Late Entry Deduction</h5>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <strong>Rule:</strong> If <code>is_late == 1</code>, then <code>DeductSalary</code> (Amount: $50).<br/>
+              <strong>Workflow:</strong> When an employee marks attendance after 09:30 AM, an event is emitted. The engine matches the rule and records a deduction in the ledger for that date.
+            </p>
+          </div>
+          <div>
+            <h5 style={{ color: 'var(--accent-green)', marginBottom: '0.5rem' }}>Example 2: Overtime Bonus</h5>
+            <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
+              <strong>Rule:</strong> If <code>overtime_hours &gt; 2</code>, then <code>AddBonus</code> (Amount: $100).<br/>
+              <strong>Workflow:</strong> If checkout time is 2+ hours past schedule, the engine triggers a bonus action, which is automatically summed into the "Net Payout" for the selected period.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );

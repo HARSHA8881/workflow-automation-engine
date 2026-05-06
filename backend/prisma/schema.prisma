@@ -99,8 +99,25 @@ model Employee {
   leaves      Leave[]
   events      HREvent[]
   actionLogs  ActionLog[]
+  salaries    SalaryRecord[]
   @@map("employees")
 }
+
+model SalaryRecord {
+  id          String   @id @default(cuid())
+  employeeId  String
+  inputDate   DateTime
+  outputDate  DateTime
+  baseSalary  Float
+  deductions  Float
+  bonuses     Float
+  netSalary   Float
+  status      String   @default("GENERATED")
+  createdAt   DateTime @default(now())
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@map("salary_records")
+}
+
 
 model Attendance {
   id          String           @id @default(cuid())
